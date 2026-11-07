@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>题材雷达</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e9eae6;
+  --surface: #ffffff;
+  --soft: #f4f5f1;
+  --line: #e4e5e0;
+  --grid: #efefeb;
+  --ink: #1b1d1a;
+  --ink-2: #5a5d56;
+  --ink-3: #9a9d95;
+  --lime: #e6f56a;
+  --lime-soft: #f5fbc9;
+  --up: #e23d3d;
+  --down: #13a05b;
+  --radius-lg: 28px;
+  --radius-md: 20px;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Outfit', 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 1240px;
+  margin: 28px auto;
+  background: var(--surface);
+  border-radius: 32px;
+  padding: 16px 16px 56px;
+}
+section { margin-top: 88px; padding: 0 24px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+h2 { font-size: 30px; font-weight: 500; letter-spacing: -0.01em; }
+
+/* 顶部导航 */
+nav { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 4px 4px 16px; }
+.theme-nav { display: flex; gap: 6px; justify-content: safe center; overflow-x: auto; scrollbar-width: none; }
+.theme-nav::-webkit-scrollbar { display: none; }
+.theme-nav .pill { text-decoration: none; white-space: nowrap; font-size: 14px; padding: 9px 18px; transition: background .15s; }
+.theme-nav .pill:not(.dark):hover { background: var(--soft); }
+.nav-right { display: flex; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 16px; font-size: 13px; color: var(--ink); background: var(--surface);
+}
+.pill.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+.logo svg { width: 20px; height: 20px; }
+
+/* 首屏 */
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 12px; }
+.card { border-radius: var(--radius-lg); padding: 40px; }
+.card.lime { background: var(--lime); }
+.card.soft { background: var(--soft); }
+.card.outline { border: 1px solid var(--line); }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.eyebrow::before { content: '✳'; }
+.hero h1 { font-size: 72px; font-weight: 500; letter-spacing: -0.02em; margin: 28px 0 18px; line-height: 1; }
+.hero .thesis { font-size: 19px; line-height: 1.6; max-width: 30em; }
+.stats { display: flex; gap: 12px; margin-top: 48px; flex-wrap: wrap; }
+.stat { background: rgba(255,255,255,.55); border-radius: var(--radius-md); padding: 16px 20px; min-width: 140px; }
+.stat b { display: block; font-size: 28px; font-weight: 500; }
+.stat > span { font-size: 13px; color: var(--ink-2); }
+
+.mood-head { display: flex; align-items: center; justify-content: space-between; }
+.mood-head h3 { font-size: 18px; font-weight: 500; }
+.stage-track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 28px 0 22px; }
+.stage {
+  text-align: center; padding: 12px 0; border-radius: 999px; font-size: 14px;
+  background: var(--surface); color: var(--ink-3);
+}
+.stage.passed { background: var(--lime-soft); color: var(--ink-2); }
+.stage.now { background: var(--ink); color: #fff; font-weight: 500; }
+.verdict { font-size: 22px; line-height: 1.5; font-weight: 500; }
+.mood-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 28px; }
+.mood-metrics div { background: var(--surface); border-radius: 16px; padding: 14px 16px; }
+.mood-metrics b { display: block; font-size: 26px; font-weight: 500; }
+.mood-metrics div > span { font-size: 13px; color: var(--ink-2); }
+.bars-title { font-size: 13px; color: var(--ink-2); margin: 24px 0 10px; }
+#limitBars { width: 100%; height: 64px; display: block; }
+
+/* 主图 */
+.chart-card { padding: 32px 32px 24px; }
+.controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 4px; }
+.seg button {
+  border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink-2);
+  padding: 8px 18px; border-radius: 999px; cursor: pointer;
+}
+.seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 24px 0 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+  border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px 7px 10px;
+  font: inherit; font-size: 14px; background: var(--surface); color: var(--ink);
+  transition: opacity .15s, background .15s;
+}
+.chip i { width: 10px; height: 10px; border-radius: 50%; }
+.chip small { font-size: 12px; color: var(--ink-3); }
+.chip.off { color: var(--ink-3); background: var(--soft); border-color: transparent; }
+.chip.off i { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.chip-actions { display: flex; gap: 6px; }
+.text-btn { border: 0; background: none; font: inherit; font-size: 13px; color: var(--ink-2); cursor: pointer; padding: 6px 10px; border-radius: 999px; }
+.text-btn:hover { background: var(--soft); }
+.chart-wrap { position: relative; }
+#chart { width: 100%; display: block; }
+.tip {
+  position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 10px 12px; font-size: 13px; box-shadow: 0 8px 24px rgba(20,22,18,.08);
+  min-width: 170px; opacity: 0; transition: opacity .1s;
+}
+.tip .d { color: var(--ink-2); margin-bottom: 6px; }
+.tip .r { display: flex; align-items: center; gap: 8px; line-height: 1.7; }
+.tip .r i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.tip .r em { font-style: normal; margin-left: auto; padding-left: 12px; }
+
+/* 逻辑 */
+.logic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.logic .card { padding: 32px; }
+.num {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--ink); font-size: 14px; font-weight: 500;
+}
+.logic h3 { font-size: 22px; font-weight: 500; margin: 40px 0 12px; }
+.logic p { font-size: 15px; line-height: 1.75; color: var(--ink-2); }
+
+/* 催化 */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 400; font-size: 13px; color: var(--ink-3); padding: 0 0 14px; border-bottom: 1px solid var(--line); }
+td { padding: 22px 0; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: middle; }
+td.ev { font-size: 19px; }
+.mark {
+  width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center;
+  background: var(--lime); font-size: 13px; font-weight: 500;
+}
+.tag { display: inline-block; font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+.tag.hot { background: var(--lime); border-color: var(--lime); }
+.tag.risk { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* 个股 */
+.stocks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stock { border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; min-height: 230px; }
+.stock.soft { background: var(--soft); }
+.stock.lime { background: var(--lime); }
+.stock-top { display: flex; align-items: center; justify-content: space-between; }
+.dots { display: flex; gap: 4px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(27,29,26,.15); }
+.dots i.on { background: var(--ink); }
+.stock h3 { font-size: 22px; font-weight: 500; margin: 26px 0 6px; display: flex; align-items: center; gap: 10px; }
+.stock h3 i { width: 10px; height: 10px; border-radius: 50%; }
+.stock p { font-size: 14px; color: var(--ink-2); line-height: 1.6; }
+.stock-nums { display: flex; gap: 24px; margin-top: auto; padding-top: 20px; }
+.stock-nums b { display: block; font-size: 24px; font-weight: 500; }
+.stock-nums div > span { font-size: 12px; color: var(--ink-2); }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+@media (max-width: 900px) {
+  .page { margin: 0; border-radius: 0; }
+  nav { grid-template-columns: 1fr auto; }
+  .theme-nav { grid-column: 1 / -1; order: 3; justify-content: flex-start; }
+  section { padding: 0 8px; margin-top: 64px; }
+  .hero, .logic { grid-template-columns: 1fr; }
+  .stocks { grid-template-columns: repeat(2, 1fr); }
+  .card { padding: 28px; }
+  .hero h1 { font-size: 52px; }
+  .chart-card { padding: 20px 16px; }
+}
+@media (max-width: 560px) {
+  .stocks { grid-template-columns: 1fr; }
+  .nav-right .pill:not(.keep) { display: none; }
+  td.date, th.date { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav>
+    <div class="logo">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6v8M7 3v14M11 7v6M15 4v12M19 8v4"/></svg>
+      题材雷达
+    </div>
+    <div class="theme-nav" id="themeNav"></div>
+    <div class="nav-right">
+      <span class="pill" id="updated"></span>
+      <span class="pill dark keep">示例数据</span>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="card lime">
+      <span class="eyebrow">题材</span>
+      <h1 id="themeName"></h1>
+      <p class="thesis" id="thesis"></p>
+      <div class="stats" id="heroStats"></div>
+    </div>
+    <div class="card soft">
+      <div class="mood-head">
+        <h3>情绪周期</h3>
+        <span class="pill" id="dayCount"></span>
+      </div>
+      <div class="stage-track" id="stageTrack"></div>
+      <p class="verdict" id="verdict"></p>
+      <div class="mood-metrics" id="moodMetrics"></div>
+      <p class="bars-title">每日题材内涨停家数</p>
+      <svg id="limitBars"></svg>
+    </div>
+  </div>
+
+  <section>
+    <div class="card outline chart-card">
+      <div class="controls">
+        <h2 id="chartTitle">相对中军涨幅</h2>
+        <div class="seg" id="modeSeg">
+          <button data-mode="rel" class="on">相对中军</button>
+          <button data-mode="abs">区间涨幅</button>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="chip-actions">
+        <button class="text-btn" data-pick="all">全部显示</button>
+        <button class="text-btn" data-pick="hi">只看高辨识度</button>
+      </div>
+      <div class="chart-wrap">
+        <svg id="chart"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>上涨逻辑</h2></div>
+    <div class="logic" id="logic"></div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>催化事件</h2></div>
+    <table>
+      <thead><tr><th style="width:56px"></th><th class="date" style="width:120px">日期</th><th>事件</th><th style="width:120px">类型</th><th style="width:140px;text-align:right">当日题材均涨</th></tr></thead>
+      <tbody id="events"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>个股梯队</h2></div>
+    <div class="stocks" id="stocks"></div>
+  </section>
+</div>
+
+<script src="data/themes.js"></script>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+let D, M, N, core;
+
+// —— 颜色：辨识度越高越鲜艳；颜色跟随个股，不随筛选变化 ——
+const VIVID = ['#eb6834', '#2a78d6', '#1baf7a', '#6250d6', '#e87ba4', '#eda100'];
+const mix = (hex, to, k) => {
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const a = p(hex), b = p(to);
+  return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * k).toString(16).padStart(2, '0')).join('');
+};
+
+// —— 计算（每个题材只算一次）——
+function prepare(t) {
+  D = t; M = t.meta; N = D.dates.length;
+  core = D.stocks.find(s => s.name === M.core);
+  if (D.ready) return;
+  D.stocks.forEach(s => {
+    s.abs = s.close.map(c => c / s.close[0] - 1);
+    s.isCore = s === core;
+  });
+  D.stocks.forEach(s => { s.rel = s.abs.map((a, t) => (1 + a) / (1 + core.abs[t]) - 1); });
+  let vi = 0;
+  [...D.stocks].sort((a, b) => b.recog - a.recog).forEach(s => {
+    if (s.isCore) { s.color = '#1b1d1a'; s.width = 2.5; return; }
+    if (s.recog >= 4) { s.color = VIVID[vi++]; s.width = s.recog === 5 ? 3 : 2.5; }
+    else if (s.recog === 3) { s.color = mix(VIVID[vi++], '#c8cac3', 0.35); s.width = 2; }
+    else { s.color = s.recog === 2 ? '#b4b7af' : '#cdd0c9'; s.width = 1.5; }
+  });
+  D.stocks.forEach(s => s.visible = true);
+  D.ready = true;
+}
+
+const pct = (v, d = 1) => (v > 0 ? '+' : '') + (v * 100).toFixed(d) + '%';
+const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : '';
+const md = iso => iso.slice(5).replace('-', '/');
+const el = (tag, attrs = {}, parent) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+};
+
+// —— 首屏 ——
+function renderHero() {
+  document.getElementById('updated').textContent = '更新于 ' + M.updated;
+  document.getElementById('themeName').textContent = M.name;
+  document.getElementById('thesis').textContent = M.thesis;
+  const lead = [...D.stocks].sort((a, b) => b.abs[N - 1] - a.abs[N - 1])[0];
+  document.getElementById('heroStats').innerHTML = [
+    [md(D.dates[0]), '起点'],
+    [`<span class="${cls(core.abs[N - 1])}">${pct(core.abs[N - 1])}</span>`, '中军 · ' + core.name],
+    [`<span class="${cls(lead.abs[N - 1])}">${pct(lead.abs[N - 1])}</span>`, '最强 · ' + lead.name],
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+
+  document.getElementById('dayCount').textContent = `第 ${N} 个交易日`;
+  const ci = M.stageOrder.indexOf(M.current);
+  document.getElementById('stageTrack').innerHTML = M.stageOrder
+    .map((s, i) => `<div class="stage ${i < ci ? 'passed' : i === ci ? 'now' : ''}">${s}</div>`).join('');
+  document.getElementById('verdict').textContent = M.verdict;
+  const S = D.sentiment;
+  document.getElementById('moodMetrics').innerHTML = [
+    [S.limitUp[N - 1] + ' 家', '今日涨停'],
+    [S.maxBoard[N - 1] + ' 板', '最高连板'],
+    [S.brokenRate[N - 1] + '%', '炸板率'],
+  ].map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+
+  {
+    const svg = document.getElementById('limitBars');
+    svg.innerHTML = '';
+    const w = svg.clientWidth, h = 64, gap = 4;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const max = Math.max(...S.limitUp), bw = (w - gap * (N - 1)) / N;
+    const peak = S.limitUp.indexOf(max);
+    S.limitUp.forEach((v, i) => {
+      const bh = Math.max(3, v / max * (h - 4));
+      const r = el('rect', { x: i * (bw + gap), y: h - bh, width: bw, height: bh, rx: Math.min(4, bw / 2),
+        fill: i === N - 1 ? '#1b1d1a' : i === peak ? '#c9d94a' : '#dcdfd6' }, svg);
+      el('title', {}, r).textContent = `${md(D.dates[i])}  涨停 ${v} 家`;
+    });
+  }
+}
+
+// —— 主图 ——
+let mode = 'rel';
+const chips = document.getElementById('chips');
+let hoverName = null;
+function renderChips() {
+  chips.innerHTML = '';
+  D.stocks.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (s.visible ? '' : ' off');
+    b.innerHTML = `<i style="background:${s.color}"></i>${s.name}<small>${s.role}</small>`;
+    b.onclick = () => { s.visible = !s.visible; renderChips(); drawChart(); };
+    b.onmouseenter = () => { hoverName = s.name; drawChart(); };
+    b.onmouseleave = () => { hoverName = null; drawChart(); };
+    chips.appendChild(b);
+  });
+}
+document.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+  D.stocks.forEach(s => s.visible = b.dataset.pick === 'all' || s.recog >= 4);
+  renderChips(); drawChart();
+});
+document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll('#modeSeg button').forEach(x => x.classList.toggle('on', x === b));
+  document.getElementById('chartTitle').textContent = mode === 'rel' ? '相对中军涨幅' : '区间涨幅';
+  drawChart();
+});
+
+const svg = document.getElementById('chart'), tip = document.getElementById('tip');
+let geo = null;
+
+function niceTicks(lo, hi, count = 5) {
+  const step0 = (hi - lo) / count, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= step0);
+  const ticks = [];
+  for (let v = Math.floor(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(+v.toFixed(6));
+  return ticks;
+}
+
+function drawChart() {
+  const W = svg.clientWidth || 1000, H = W < 600 ? 360 : 460;
+  const pad = { l: 52, r: W < 600 ? 72 : 128, t: 64, b: 36 };
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+  svg.innerHTML = '';
+  tip.style.opacity = 0;
+  const key = mode === 'rel' ? 'rel' : 'abs';
+  const shown = D.stocks.filter(s => s.visible && !(mode === 'rel' && s.isCore));
+  const vals = shown.flatMap(s => s[key]).concat([0]);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const span = hi - lo || 0.1; lo -= span * 0.06; hi += span * 0.06;
+  const ticks = niceTicks(lo, hi);
+  lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks[ticks.length - 1]);
+  const x = i => pad.l + i / (N - 1) * (W - pad.l - pad.r);
+  const y = v => pad.t + (hi - v) / (hi - lo) * (H - pad.t - pad.b);
+  geo = { x, y, pad, W, H, key };
+
+  // 情绪阶段底色
+  M.stages.forEach((st, i) => {
+    const x0 = i === 0 ? pad.l : (x(st.from - 1) + x(st.from)) / 2;
+    const x1 = st.to >= N - 1 ? W - pad.r : (x(st.to - 1) + x(st.to)) / 2;
+    const now = st.name === M.current;
+    el('rect', { x: x0, y: pad.t - 30, width: x1 - x0, height: H - pad.t - pad.b + 30,
+      fill: now ? '#f5fbc9' : i % 2 ? '#f7f8f4' : '#ffffff' }, svg);
+    el('text', { x: x0 + 10, y: pad.t - 38, 'font-size': 13, fill: now ? '#1b1d1a' : '#9a9d95',
+      'font-weight': now ? 500 : 400 }, svg).textContent = st.name;
+  });
+
+  // 网格与坐标
+  ticks.forEach(t => {
+    el('line', { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: t === 0 ? '#c6c8c1' : '#ecede8' }, svg);
+    el('text', { x: pad.l - 10, y: y(t) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#9a9d95' }, svg)
+      .textContent = (t > 0 ? '+' : '') + Math.round(t * 100) + '%';
+  });
+  const every = Math.ceil(N / (W < 600 ? 4 : 7));
+  D.dates.forEach((d, i) => {
+    if (i % every && i !== N - 1) return;
+    el('text', { x: x(i), y: H - 12, 'text-anchor': 'middle', 'font-size': 12, fill: '#9a9d95' }, svg).textContent = md(d);
+  });
+
+  // 催化标记
+  M.events.forEach((e, i) => {
+    el('line', { x1: x(e.day), x2: x(e.day), y1: pad.t - 6, y2: H - pad.b, stroke: '#1b1d1a', 'stroke-opacity': .18, 'stroke-dasharray': '3 4' }, svg);
+    el('circle', { cx: x(e.day), cy: pad.t - 6, r: 10, fill: e.tag === '风险' ? '#1b1d1a' : '#e6f56a' }, svg);
+    el('text', { x: x(e.day), y: pad.t - 2, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 500,
+      fill: e.tag === '风险' ? '#fff' : '#1b1d1a' }, svg).textContent = i + 1;
+  });
+
+  // 中军基准（相对模式下即 0 线）
+  if (mode === 'rel' && core.visible) {
+    el('line', { x1: pad.l, x2: W - pad.r, y1: y(0), y2: y(0), stroke: core.color, 'stroke-width': 1.5, 'stroke-dasharray': '6 5' }, svg);
+  }
+
+  // 线：低辨识度先画，高辨识度在上
+  const order = [...shown].sort((a, b) => a.recog - b.recog);
+  order.forEach(s => {
+    const dim = hoverName && hoverName !== s.name;
+    el('path', {
+      d: s[key].map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(''),
+      fill: 'none', stroke: s.color, 'stroke-width': hoverName === s.name ? s.width + 1 : s.width,
+      'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: dim ? .15 : 1,
+    }, svg);
+    el('circle', { cx: x(N - 1), cy: y(s[key][N - 1]), r: 4, fill: s.color, stroke: '#fff', 'stroke-width': 2, opacity: dim ? .15 : 1 }, svg);
+  });
+
+  // 末端标签（避让）
+  const labels = shown.map(s => ({ s, v: s[key][N - 1], y: y(s[key][N - 1]) }));
+  if (mode === 'rel' && core.visible) labels.push({ s: core, v: 0, y: y(0) });
+  labels.sort((a, b) => a.y - b.y);
+  const gapY = 17;
+  for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + gapY);
+  const over = labels.length ? labels[labels.length - 1].y - (H - pad.b) : 0;
+  if (over > 0) { labels.forEach(l => l.y -= over); for (let i = labels.length - 2; i >= 0; i--) labels[i].y = Math.min(labels[i].y, labels[i + 1].y - gapY); }
+  labels.forEach(l => {
+    const dim = hoverName && hoverName !== l.s.name;
+    const g = el('g', { opacity: dim ? .25 : 1 }, svg);
+    el('text', { x: W - pad.r + 12, y: l.y + 4, 'font-size': 12.5, fill: '#1b1d1a', 'font-weight': l.s.recog >= 4 || l.s.isCore ? 500 : 400 }, g)
+      .textContent = W < 600 ? pct(l.v, 0) : `${l.s.name} ${pct(l.v, 0)}`;
+  });
+
+  // 悬停层
+  const cross = el('line', { y1: pad.t - 30, y2: H - pad.b, stroke: '#1b1d1a', 'stroke-opacity': 0, 'stroke-width': 1 }, svg);
+  const dots = el('g', {}, svg);
+  const hit = el('rect', { x: pad.l, y: pad.t - 30, width: W - pad.l - pad.r, height: H - pad.t - pad.b + 30, fill: 'transparent' }, svg);
+  hit.onmousemove = ev => {
+    const r = svg.getBoundingClientRect();
+    const mx = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(N - 1, Math.round((mx - pad.l) / (W - pad.l - pad.r) * (N - 1))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('stroke-opacity', .25);
+    dots.innerHTML = '';
+    shown.forEach(s => el('circle', { cx: x(i), cy: y(s[key][i]), r: 4, fill: s.color, stroke: '#fff', 'stroke-width': 2 }, dots));
+    const rows = [...shown].sort((a, b) => b[key][i] - a[key][i]);
+    const ev2 = M.events.find(e => e.day === i);
+    tip.innerHTML = `<div class="d">${md(D.dates[i])}${ev2 ? ' · ' + ev2.title : ''}</div>` + rows.map(s =>
+      `<div class="r"><i style="background:${s.color}"></i>${s.name}<em class="${cls(s[key][i])}">${pct(s[key][i])}</em></div>`).join('');
+    tip.style.opacity = 1;
+    const px = x(i) / W * r.width, tw = tip.offsetWidth;
+    tip.style.left = (px + 16 + tw > r.width ? px - tw - 16 : px + 16) + 'px';
+    tip.style.top = '40px';
+  };
+  hit.onmouseleave = () => { tip.style.opacity = 0; cross.setAttribute('stroke-opacity', 0); dots.innerHTML = ''; };
+}
+
+function renderSections() {
+  // —— 上涨逻辑 ——
+  document.getElementById('logic').innerHTML = M.logic.map((l, i) =>
+    `<div class="card soft"><div class="num">0${i + 1}</div><h3>${l.title}</h3><p>${l.text}</p></div>`).join('');
+
+  // —— 催化事件 ——
+  const avgDay = i => i === 0 ? null : D.stocks.reduce((a, s) => a + s.close[i] / s.close[i - 1] - 1, 0) / D.stocks.length;
+  document.getElementById('events').innerHTML = M.events.map((e, i) => {
+    const a = avgDay(e.day);
+    const tagCls = e.tag === '风险' ? 'risk' : e.tag === '产业' ? 'hot' : '';
+    return `<tr><td><span class="mark" ${e.tag === '风险' ? 'style="background:#1b1d1a;color:#fff"' : ''}>${i + 1}</span></td>
+      <td class="date">${md(D.dates[e.day])}</td><td class="ev">${e.title}</td>
+      <td><span class="tag ${tagCls}">${e.tag}</span></td>
+      <td style="text-align:right" class="${a == null ? '' : cls(a)}">${a == null ? '起点' : pct(a)}</td></tr>`;
+  }).join('');
+
+  // —— 个股梯队 ——
+  document.getElementById('stocks').innerHTML = [...D.stocks]
+    .sort((a, b) => b.recog - a.recog || b.abs[N - 1] - a.abs[N - 1])
+    .map(s => `<div class="stock ${s.recog === 5 ? 'lime' : 'soft'}">
+      <div class="stock-top"><span class="tag" ${s.recog === 5 ? 'style="background:#fff;border-color:#fff"' : ''}>${s.role}</span>
+        <span class="dots" title="辨识度 ${s.recog}/5">${[1, 2, 3, 4, 5].map(k => `<i class="${k <= s.recog ? 'on' : ''}"></i>`).join('')}</span></div>
+      <h3><i style="background:${s.color}"></i>${s.name}</h3>
+      <p>${M.notes[s.name] || ''}</p>
+      <div class="stock-nums">
+        <div><b class="${cls(s.abs[N - 1])}">${pct(s.abs[N - 1])}</b><span>区间涨幅</span></div>
+        ${s.isCore ? '' : `<div><b class="${cls(s.rel[N - 1])}">${pct(s.rel[N - 1])}</b><span>相对中军</span></div>`}
+      </div></div>`).join('');
+}
+
+// —— 题材导航：按需加载 data/themes/<id>/ 下的文件，地址栏 #id 可直接定位 ——
+const loadScript = src => new Promise((ok, fail) => {
+  const s = document.createElement('script');
+  s.src = src; s.onload = ok; s.onerror = fail;
+  document.head.appendChild(s);
+});
+const themeNav = document.getElementById('themeNav');
+themeNav.innerHTML = THEME_LIST.map(t => `<a class="pill" href="#${t.id}" data-id="${t.id}">${t.name}</a>`).join('');
+
+async function show(id) {
+  if (!THEME_LIST.some(t => t.id === id)) id = THEME_LIST[0].id;
+  themeNav.querySelectorAll('a').forEach(a => a.classList.toggle('dark', a.dataset.id === id));
+  const t = (window.THEMES || {})[id];
+  if (!t || !t.meta || !t.dates) {
+    await Promise.all(['meta', 'prices'].map(f => loadScript(`data/themes/${id}/${f}.js`)));
+  }
+  prepare(THEMES[id]);
+  document.title = M.name + ' · 题材雷达';
+  renderHero();
+  renderChips();
+  drawChart();
+  renderSections();
+}
+addEventListener('hashchange', () => show(location.hash.slice(1)));
+addEventListener('resize', () => D && drawChart());
+show(location.hash.slice(1));
+</script>
+</body>
+</html>
